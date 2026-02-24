@@ -111,6 +111,15 @@ function render() {
   renderMonths();
 }
 
+function refreshDeleteListsIfOpen() {
+  if (!memberDeleteModalEl.classList.contains('hidden')) {
+    renderMemberDeleteOptions();
+  }
+  if (!eventDeleteModalEl.classList.contains('hidden')) {
+    renderEventDeleteOptions();
+  }
+}
+
 function renderLegend() {
   members.forEach(m => {
     const chip = document.createElement('div');
@@ -446,17 +455,19 @@ async function handleAddEvent(e) {
   const prevEvents = events.slice();
   events = events.concat(newEvents);
   render();
+  refreshDeleteListsIfOpen();
 
   try {
-    eventForm.reset();
-    closeEventModal();
     beginOp();
     await api('addEvent', { events: newEvents });
+    eventForm.reset();
     await refreshData();
     render();
+    refreshDeleteListsIfOpen();
   } catch (err) {
     events = prevEvents;
     render();
+    refreshDeleteListsIfOpen();
     alert('일정 추가에 실패했습니다.');
   } finally {
     endOp();
@@ -477,18 +488,20 @@ async function handleAddMember(e) {
   members = members.concat([{ name, color }]);
   selectedMembers.add(name);
   render();
+  refreshDeleteListsIfOpen();
 
   try {
-    memberForm.reset();
-    closeMemberModal();
     beginOp();
     await api('addMember', { name, color });
+    memberForm.reset();
     await refreshData();
     render();
+    refreshDeleteListsIfOpen();
   } catch (err) {
     members = prevMembers;
     selectedMembers = new Set(members.map(m => m.name));
     render();
+    refreshDeleteListsIfOpen();
     alert('인원 추가에 실패했습니다.');
   } finally {
     endOp();
@@ -508,18 +521,20 @@ async function handleDeleteMembers(e) {
   events = events.filter(ev => !names.includes(ev.member));
   selectedMembers = new Set(members.map(m => m.name));
   render();
+  refreshDeleteListsIfOpen();
 
   try {
-    closeMemberDeleteModal();
     beginOp();
     await api('deleteMember', { names });
     await refreshData();
     render();
+    refreshDeleteListsIfOpen();
   } catch (err) {
     members = prevMembers;
     events = prevEvents;
     selectedMembers = new Set(members.map(m => m.name));
     render();
+    refreshDeleteListsIfOpen();
     alert('인원 삭제에 실패했습니다.');
   } finally {
     endOp();
@@ -534,16 +549,18 @@ async function handleDeleteEvents(e) {
   const prevEvents = events.slice();
   events = events.filter(ev => !ids.includes(ev.id));
   render();
+  refreshDeleteListsIfOpen();
 
   try {
-    closeEventDeleteModal();
     beginOp();
     await api('deleteEvent', { ids });
     await refreshData();
     render();
+    refreshDeleteListsIfOpen();
   } catch (err) {
     events = prevEvents;
     render();
+    refreshDeleteListsIfOpen();
     alert('일정 삭제에 실패했습니다.');
   } finally {
     endOp();

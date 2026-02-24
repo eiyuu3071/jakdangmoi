@@ -1,4 +1,7 @@
-﻿const defaultMembers = [
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbwpHdcT8TzXQAaPlvqvonIJrQ04v3RhQQ1-dgZeUO7v_4Dblc2UuSVsFPUp7RhBw6NE5Q/exec';
+const API_TOKEN = 'jakdangmoi-2026';
+
+const defaultMembers = [
   { name: '해신', color: '#a7f3d0' },
   { name: '형배', color: '#fde68a' },
   { name: '명환', color: '#bfdbfe' },
@@ -6,22 +9,12 @@
   { name: '영웅', color: '#ddd6fe' },
 ];
 
-
-const STORAGE_KEY = 'team-schedule-events-v1';
-const MEMBERS_KEY = 'team-schedule-members-v1';
 const holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
 
-const defaultEvents = [
-  { member: '해신', type: '휴가', start: '2026-03-03', end: '2026-03-07' },
-  { member: '형배', type: '출장', start: '2026-02-26', end: '2026-04-15', note: '미주 파트너 미팅' },
-  { member: '명환', type: '출장', start: '2026-03-18', end: '2026-03-20', note: '고객사 방문' },
-  { member: '선호', type: '휴가', start: '2026-04-10', end: '2026-04-14' },
-  { member: '영웅', type: '출장', start: '2026-04-25', end: '2026-05-12', note: '장기 프로젝트' },
-];
-
-let members = loadMembers();
-let events = loadEvents();
-pruneExpiredEvents();
+let members = [];
+let events = [];
+let selectedMembers = new Set();
+let baseDate = startOfMonth(new Date());
 
 const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const weekdayNames = ['월','화','수','목','금','토','일'];
@@ -63,9 +56,6 @@ const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
 const eventDeleteList = document.getElementById('eventDeleteList');
 
-let baseDate = startOfMonth(new Date());
-let selectedMembers = new Set(members.map(m => m.name));
-
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const todayBtn = document.getElementById('todayBtn');
@@ -85,8 +75,36 @@ todayBtn.addEventListener('click', () => {
   render();
 });
 
+async function api(action, payload = {}) {
+  if (API_URL.includes('PASTE_')) {
+    alert('API_URL을 먼저 설정해주세요.');
+    throw new Error('API_URL not set');
+  }
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: API_TOKEN, action, payload }),
+  });
+  const data = await res.json();
+  if (!data.ok) {
+    throw new Error(data.error || 'API error');
+  }
+  return data;
+}
+
+async function refreshData() {
+  try {
+    const data = await api('get');
+    members = data.members.length ? data.members : defaultMembers;
+    events = data.events || [];
+    selectedMembers = new Set(members.map(m => m.name));
+  } catch (err) {
+    console.error(err);
+    alert('데이터를 불러오지 못했습니다. API 설정을 확인해주세요.');
+  }
+}
+
 function render() {
-  pruneExpiredEvents();
   calendarEl.innerHTML = '';
   legendEl.innerHTML = '';
   memberFiltersEl.innerHTML = '';
@@ -95,6 +113,7 @@ function render() {
   renderLegend();
   renderMemberFilters();
   renderMemberDeleteOptions();
+  renderEventDeleteOptions();
   renderMonths();
 }
 
@@ -268,7 +287,7 @@ function renderMonth(monthDate) {
     dateEl.className = 'date';
     dateEl.textContent = day.getDate();
 
-    const dayOfWeek = day.getDay(); // 0 Sun ... 6 Sat
+    const dayOfWeek = day.getDay();
     if (dayOfWeek === 0) dateEl.classList.add('sun');
     if (dayOfWeek === 6) dateEl.classList.add('sat');
 
@@ -318,11 +337,7 @@ function renderMonth(monthDate) {
 }
 
 function eventsForDay(day) {
-  return visibleEvents().filter(ev => inRange(day, ev.start, ev.end));
-}
-
-function visibleEvents() {
-  return events.filter(ev => selectedMembers.has(ev.member));
+  return events.filter(ev => selectedMembers.has(ev.member) && inRange(day, ev.start, ev.end));
 }
 
 function parseDate(str) {
@@ -349,13 +364,6 @@ function inRange(day, startStr, endStr) {
   const start = parseDate(startStr);
   const end = parseDate(endStr);
   return day >= startOfDay(start) && day <= endOfDay(end);
-}
-
-function daysInclusive(startStr, endStr) {
-  const start = startOfDay(parseDate(startStr));
-  const end = startOfDay(parseDate(endStr));
-  const diff = (end - start) / (1000 * 60 * 60 * 24);
-  return diff + 1;
 }
 
 function startOfMonth(date) {
@@ -388,12 +396,12 @@ function isSameDay(a, b) {
 
 function startOfCalendar(monthDate) {
   const first = startOfMonth(monthDate);
-  const day = first.getDay(); // 0 Sun, 1 Mon
-  const offset = (day + 6) % 7; // Monday start
+  const day = first.getDay();
+  const offset = (day + 6) % 7;
   return addDays(first, -offset);
 }
 
-eventForm.addEventListener('submit', (e) => {
+async function handleAddEvent(e) {
   e.preventDefault();
   const selected = [...memberSelectEl.querySelectorAll('input[type="checkbox"]')]
     .filter(i => i.checked)
@@ -414,24 +422,27 @@ eventForm.addEventListener('submit', (e) => {
     return;
   }
 
-  selected.forEach(name => {
-    events.push({
-      id: makeId(),
-      member: name,
-      type: typeInput.value,
-      start: startInput.value,
-      end: endInput.value,
-      note: noteInput.value.trim(),
-    });
-  });
+  const newEvents = selected.map(name => ({
+    id: makeId(),
+    member: name,
+    type: typeInput.value,
+    start: startInput.value,
+    end: endInput.value,
+    note: noteInput.value.trim(),
+  }));
 
-  saveEvents();
-  eventForm.reset();
-  closeEventModal();
-  render();
-});
+  try {
+    await api('addEvent', { events: newEvents });
+    eventForm.reset();
+    closeEventModal();
+    await refreshData();
+    render();
+  } catch (err) {
+    alert('일정 추가에 실패했습니다.');
+  }
+}
 
-memberForm.addEventListener('submit', (e) => {
+async function handleAddMember(e) {
   e.preventDefault();
   const name = memberNameInput.value.trim();
   if (!name) return;
@@ -440,36 +451,46 @@ memberForm.addEventListener('submit', (e) => {
     return;
   }
   const color = nextMemberColor();
-  members.push({ name, color });
-  selectedMembers.add(name);
-  saveMembers();
-  memberForm.reset();
-  closeMemberModal();
-  render();
-});
+  try {
+    await api('addMember', { name, color });
+    memberForm.reset();
+    closeMemberModal();
+    await refreshData();
+    render();
+  } catch (err) {
+    alert('인원 추가에 실패했습니다.');
+  }
+}
 
-memberDeleteForm.addEventListener('submit', (e) => {
+async function handleDeleteMembers(e) {
   e.preventDefault();
   const names = (memberDeleteList.dataset.selectedNames || '').split(',').filter(Boolean);
   if (names.length === 0) return;
-  names.forEach(name => deleteMember(name));
-  closeMemberDeleteModal();
-});
-
-function updateMemberDeleteSelection() {
-  const names = [...memberDeleteList.querySelectorAll('.select-item')]
-    .filter(item => item.querySelector('input').checked)
-    .map(item => item.dataset.name);
-  memberDeleteList.dataset.selectedNames = names.join(',');
+  const ok = confirm('선택한 인원의 일정도 함께 삭제됩니다. 진행할까요?');
+  if (!ok) return;
+  try {
+    await api('deleteMember', { names });
+    closeMemberDeleteModal();
+    await refreshData();
+    render();
+  } catch (err) {
+    alert('인원 삭제에 실패했습니다.');
+  }
 }
 
-eventDeleteForm.addEventListener('submit', (e) => {
+async function handleDeleteEvents(e) {
   e.preventDefault();
   const ids = (eventDeleteList.dataset.selectedIds || '').split(',').filter(Boolean);
   if (ids.length === 0) return;
-  ids.forEach(id => deleteEvent(id));
-  closeEventDeleteModal();
-});
+  try {
+    await api('deleteEvent', { ids });
+    closeEventDeleteModal();
+    await refreshData();
+    render();
+  } catch (err) {
+    alert('일정 삭제에 실패했습니다.');
+  }
+}
 
 function updateDeleteSelection() {
   const ids = [...eventDeleteList.querySelectorAll('.select-item')]
@@ -478,66 +499,15 @@ function updateDeleteSelection() {
   eventDeleteList.dataset.selectedIds = ids.join(',');
 }
 
-function deleteEvent(id) {
-  events = events.filter(ev => ev.id !== id);
-  saveEvents();
-  render();
+function updateMemberDeleteSelection() {
+  const names = [...memberDeleteList.querySelectorAll('.select-item')]
+    .filter(item => item.querySelector('input').checked)
+    .map(item => item.dataset.name);
+  memberDeleteList.dataset.selectedNames = names.join(',');
 }
 
-function pruneExpiredEvents() {
-  const today = startOfDay(new Date());
-  const before = events.length;
-  events = events.filter(ev => {
-    const end = endOfDay(parseDate(ev.end));
-    return end >= today;
-  });
-  if (events.length !== before) {
-    saveEvents();
-  }
-}
-
-function deleteMember(name) {
-  const hasEvents = events.some(ev => ev.member === name);
-  if (hasEvents) {
-    const ok = confirm('이 인원의 일정도 함께 삭제됩니다. 진행할까요?');
-    if (!ok) return;
-  }
-  members = members.filter(m => m.name !== name);
-  events = events.filter(ev => ev.member !== name);
-  selectedMembers.delete(name);
-  saveMembers();
-  saveEvents();
-  render();
-}
-
-function loadEvents() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return defaultEvents.map(e => ({ ...e, id: makeId() }));
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed.map(e => ({ ...e, id: e.id || makeId() }));
-  } catch {
-    return defaultEvents.map(e => ({ ...e, id: makeId() }));
-  }
-}
-
-function saveEvents() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-}
-
-function loadMembers() {
-  const raw = localStorage.getItem(MEMBERS_KEY);
-  if (!raw) return [...defaultMembers];
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed.length ? parsed : [...defaultMembers];
-  } catch {
-    return [...defaultMembers];
-  }
-}
-
-function saveMembers() {
-  localStorage.setItem(MEMBERS_KEY, JSON.stringify(members));
+function makeId() {
+  return `ev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function nextMemberColor() {
@@ -545,10 +515,6 @@ function nextMemberColor() {
   const used = new Set(members.map(m => m.color));
   const available = palette.find(c => !used.has(c));
   return available || palette[Math.floor(Math.random() * palette.length)];
-}
-
-function makeId() {
-  return `ev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function openModalForDate(day) {
@@ -584,9 +550,6 @@ function closeModal() {
   modalEl.classList.add('hidden');
 }
 
-modalCloseBtn.addEventListener('click', closeModal);
-modalBackdrop.addEventListener('click', closeModal);
-
 function openMemberModal() {
   memberModalEl.classList.remove('hidden');
   memberNameInput.focus();
@@ -595,10 +558,6 @@ function openMemberModal() {
 function closeMemberModal() {
   memberModalEl.classList.add('hidden');
 }
-
-openMemberModalBtn.addEventListener('click', openMemberModal);
-memberModalCloseBtn.addEventListener('click', closeMemberModal);
-memberModalBackdrop.addEventListener('click', closeMemberModal);
 
 function openMemberDeleteModal() {
   renderMemberDeleteOptions();
@@ -609,10 +568,6 @@ function closeMemberDeleteModal() {
   memberDeleteModalEl.classList.add('hidden');
 }
 
-openMemberDeleteModalBtn.addEventListener('click', openMemberDeleteModal);
-memberDeleteCloseBtn.addEventListener('click', closeMemberDeleteModal);
-memberDeleteBackdrop.addEventListener('click', closeMemberDeleteModal);
-
 function openEventModal() {
   eventModalEl.classList.remove('hidden');
 }
@@ -620,10 +575,6 @@ function openEventModal() {
 function closeEventModal() {
   eventModalEl.classList.add('hidden');
 }
-
-openEventModalBtn.addEventListener('click', openEventModal);
-eventModalCloseBtn.addEventListener('click', closeEventModal);
-eventModalBackdrop.addEventListener('click', closeEventModal);
 
 function openEventDeleteModal() {
   renderEventDeleteOptions();
@@ -634,8 +585,27 @@ function closeEventDeleteModal() {
   eventDeleteModalEl.classList.add('hidden');
 }
 
+modalCloseBtn.addEventListener('click', closeModal);
+modalBackdrop.addEventListener('click', closeModal);
+openMemberModalBtn.addEventListener('click', openMemberModal);
+memberModalCloseBtn.addEventListener('click', closeMemberModal);
+memberModalBackdrop.addEventListener('click', closeMemberModal);
+openMemberDeleteModalBtn.addEventListener('click', openMemberDeleteModal);
+memberDeleteCloseBtn.addEventListener('click', closeMemberDeleteModal);
+memberDeleteBackdrop.addEventListener('click', closeMemberDeleteModal);
+openEventModalBtn.addEventListener('click', openEventModal);
+eventModalCloseBtn.addEventListener('click', closeEventModal);
+eventModalBackdrop.addEventListener('click', closeEventModal);
 openEventDeleteModalBtn.addEventListener('click', openEventDeleteModal);
 eventDeleteCloseBtn.addEventListener('click', closeEventDeleteModal);
 eventDeleteBackdrop.addEventListener('click', closeEventDeleteModal);
 
-render();
+memberForm.addEventListener('submit', handleAddMember);
+eventForm.addEventListener('submit', handleAddEvent);
+memberDeleteForm.addEventListener('submit', handleDeleteMembers);
+eventDeleteForm.addEventListener('submit', handleDeleteEvents);
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await refreshData();
+  render();
+});

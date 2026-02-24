@@ -448,10 +448,10 @@ async function handleAddEvent(e) {
   render();
 
   try {
-    beginOp();
-    await api('addEvent', { events: newEvents });
     eventForm.reset();
     closeEventModal();
+    beginOp();
+    await api('addEvent', { events: newEvents });
     await refreshData();
     render();
   } catch (err) {
@@ -479,10 +479,10 @@ async function handleAddMember(e) {
   render();
 
   try {
-    beginOp();
-    await api('addMember', { name, color });
     memberForm.reset();
     closeMemberModal();
+    beginOp();
+    await api('addMember', { name, color });
     await refreshData();
     render();
   } catch (err) {
@@ -510,9 +510,9 @@ async function handleDeleteMembers(e) {
   render();
 
   try {
+    closeMemberDeleteModal();
     beginOp();
     await api('deleteMember', { names });
-    closeMemberDeleteModal();
     await refreshData();
     render();
   } catch (err) {
@@ -536,9 +536,9 @@ async function handleDeleteEvents(e) {
   render();
 
   try {
+    closeEventDeleteModal();
     beginOp();
     await api('deleteEvent', { ids });
-    closeEventDeleteModal();
     await refreshData();
     render();
   } catch (err) {

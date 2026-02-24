@@ -48,7 +48,7 @@ const eventDeleteCloseBtn = document.getElementById('eventDeleteClose');
 const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
 const eventDeleteList = document.getElementById('eventDeleteList');
-const loadingEl = document.getElementById('loadingOverlay');
+let loadingEl = document.getElementById('loadingOverlay');
 
 let pendingOps = 0;
 
@@ -694,7 +694,14 @@ function saveCache() {
 }
 
 function showLoading(on) {
-  if (!loadingEl) return;
+  if (!loadingEl) {
+    const el = document.createElement('div');
+    el.id = 'loadingOverlay';
+    el.className = 'loading hidden';
+    el.innerHTML = '<div class="loading-card"><div class="spinner"></div><div>동기화 중…</div></div>';
+    document.body.appendChild(el);
+    loadingEl = el;
+  }
   loadingEl.classList.toggle('hidden', !on);
 }
 

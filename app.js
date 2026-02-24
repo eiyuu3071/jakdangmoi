@@ -108,24 +108,6 @@ function render() {
   renderMonths();
 }
 
-function loadCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.members) || !Array.isArray(parsed.events)) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function saveCache() {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ members, events, ts: Date.now() }));
-  } catch {}
-}
-
 function renderLegend() {
   members.forEach(m => {
     const chip = document.createElement('div');
@@ -440,6 +422,10 @@ async function handleAddEvent(e) {
     note: noteInput.value.trim(),
   }));
 
+  const prevEvents = events.slice();
+  events = events.concat(newEvents);
+  render();
+
   try {
     await api('addEvent', { events: newEvents });
     eventForm.reset();
@@ -447,6 +433,8 @@ async function handleAddEvent(e) {
     await refreshData();
     render();
   } catch (err) {
+    events = prevEvents;
+    render();
     alert('일정 추가에 실패했습니다.');
   }
 }
@@ -460,6 +448,12 @@ async function handleAddMember(e) {
     return;
   }
   const color = nextMemberColor();
+
+  const prevMembers = members.slice();
+  members = members.concat([{ name, color }]);
+  selectedMembers.add(name);
+  render();
+
   try {
     await api('addMember', { name, color });
     memberForm.reset();
@@ -467,6 +461,9 @@ async function handleAddMember(e) {
     await refreshData();
     render();
   } catch (err) {
+    members = prevMembers;
+    selectedMembers = new Set(members.map(m => m.name));
+    render();
     alert('인원 추가에 실패했습니다.');
   }
 }
@@ -477,12 +474,24 @@ async function handleDeleteMembers(e) {
   if (names.length === 0) return;
   const ok = confirm('선택한 인원의 일정도 함께 삭제됩니다. 진행할까요?');
   if (!ok) return;
+
+  const prevMembers = members.slice();
+  const prevEvents = events.slice();
+  members = members.filter(m => !names.includes(m.name));
+  events = events.filter(ev => !names.includes(ev.member));
+  selectedMembers = new Set(members.map(m => m.name));
+  render();
+
   try {
     await api('deleteMember', { names });
     closeMemberDeleteModal();
     await refreshData();
     render();
   } catch (err) {
+    members = prevMembers;
+    events = prevEvents;
+    selectedMembers = new Set(members.map(m => m.name));
+    render();
     alert('인원 삭제에 실패했습니다.');
   }
 }
@@ -491,12 +500,19 @@ async function handleDeleteEvents(e) {
   e.preventDefault();
   const ids = (eventDeleteList.dataset.selectedIds || '').split(',').filter(Boolean);
   if (ids.length === 0) return;
+
+  const prevEvents = events.slice();
+  events = events.filter(ev => !ids.includes(ev.id));
+  render();
+
   try {
     await api('deleteEvent', { ids });
     closeEventDeleteModal();
     await refreshData();
     render();
   } catch (err) {
+    events = prevEvents;
+    render();
     alert('일정 삭제에 실패했습니다.');
   }
 }
@@ -626,3 +642,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   render();
 });
 
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.members) || !Array.isArray(parsed.events)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ members, events, ts: Date.now() }));
+  } catch {}
+}

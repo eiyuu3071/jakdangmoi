@@ -1,14 +1,6 @@
 ﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzenrt9Gax2wD4RGBR1JWk7nwdLeCjVSzxKZ5DY13ZA5zZmlvgBauzLnZP_DvbwdS_2PQ/exec';
 const API_TOKEN = 'jakdangmoi-2026';
 
-const defaultMembers = [
-  { name: '해신', color: '#a7f3d0' },
-  { name: '형배', color: '#fde68a' },
-  { name: '명환', color: '#bfdbfe' },
-  { name: '선호', color: '#fbcfe8' },
-  { name: '영웅', color: '#ddd6fe' },
-];
-
 const holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
 
 let members = [];
@@ -94,7 +86,7 @@ async function api(action, payload = {}) {
 async function refreshData() {
   try {
     const data = await api('get');
-    members = data.members.length ? data.members : defaultMembers;
+    members = data.members || [];
     events = data.events || [];
     selectedMembers = new Set(members.map(m => m.name));
   } catch (err) {

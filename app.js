@@ -726,6 +726,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!modalEl.classList.contains('hidden')) closeModal();
+  if (!memberModalEl.classList.contains('hidden')) closeMemberModal();
+  if (!memberDeleteModalEl.classList.contains('hidden')) closeMemberDeleteModal();
+  if (!eventModalEl.classList.contains('hidden')) closeEventModal();
+  if (!eventDeleteModalEl.classList.contains('hidden')) closeEventDeleteModal();
+});
+
 function loadCache() {
   try {
     const raw = localStorage.getItem(CACHE_KEY);

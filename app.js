@@ -1,4 +1,4 @@
-﻿const API_URL = 'https://script.google.com/macros/s/AKfycbwpHdcT8TzXQAaPlvqvonIJrQ04v3RhQQ1-dgZeUO7v_4Dblc2UuSVsFPUp7RhBw6NE5Q/exec';
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzenrt9Gax2wD4RGBR1JWk7nwdLeCjVSzxKZ5DY13ZA5zZmlvgBauzLnZP_DvbwdS_2PQ/exec';
 const API_TOKEN = 'jakdangmoi-2026';
 
 const defaultMembers = [
@@ -608,3 +608,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   await refreshData();
   render();
 });
+

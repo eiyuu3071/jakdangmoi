@@ -645,6 +645,10 @@ function closeMemberModal() {
 }
 
 function openMemberDeleteModal() {
+  if (members.length === 0) {
+    alert('삭제할 인원이 없습니다.');
+    return;
+  }
   renderMemberDeleteOptions();
   memberDeleteModalEl.classList.remove('hidden');
 }
@@ -662,6 +666,10 @@ function closeEventModal() {
 }
 
 function openEventDeleteModal() {
+  if (events.length === 0) {
+    alert('삭제할 일정이 없습니다.');
+    return;
+  }
   renderEventDeleteOptions();
   eventDeleteModalEl.classList.remove('hidden');
 }

@@ -1,7 +1,4 @@
-﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzu8Ozqi7RPJ9l51Gv-XG6C9HVK8UiWZalZjC-6-kgUr51On7ToJNRkrC9tUTYlspneUA/exec';
-const API_TOKEN = 'jakdangmoi-2026';
-
-const holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzu8Ozqi7RPJ9l51Gv-XG6C9HVK8UiWZalZjC-6-kgUr51On7ToJNRkrC9tUTYlspneUA/exec';\nconst API_TOKEN = 'jakdangmoi-2026';\n\nwindow.APP_READY = true;\n\nconst holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
 const CACHE_KEY = 'jakdangmoi-cache-v1';
 
 let members = [];
@@ -728,4 +725,5 @@ function saveCache() {
 }
 
 function beginOp() {}\n\nfunction endOp() {}\n
+
 

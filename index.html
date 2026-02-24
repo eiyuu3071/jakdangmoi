@@ -154,7 +154,14 @@
   </div>
 
   <script src="holidays-ko.js"></script>
-  <script src="app.js?v=20260224-10"></script>
+  <script src="https://eiyuu3071.github.io/jakdangmoi/app.js?v=20260224-11" onerror="alert('app.js 로딩 실패')"></script>
+  <script>
+    setTimeout(() => {
+      if (!window.APP_READY) {
+        alert('스크립트가 실행되지 않았습니다. 새로고침 후 다시 시도하세요.');
+      }
+    }, 2000);
+  </script>
 </body>
 </html>
 

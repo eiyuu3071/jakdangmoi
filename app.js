@@ -48,6 +48,9 @@ const eventDeleteCloseBtn = document.getElementById('eventDeleteClose');
 const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
 const eventDeleteList = document.getElementById('eventDeleteList');
+const loadingEl = document.getElementById('loadingOverlay');
+
+let pendingOps = 0;
 
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
@@ -445,6 +448,7 @@ async function handleAddEvent(e) {
   render();
 
   try {
+    beginOp();
     await api('addEvent', { events: newEvents });
     eventForm.reset();
     closeEventModal();
@@ -454,6 +458,8 @@ async function handleAddEvent(e) {
     events = prevEvents;
     render();
     alert('일정 추가에 실패했습니다.');
+  } finally {
+    endOp();
   }
 }
 
@@ -473,6 +479,7 @@ async function handleAddMember(e) {
   render();
 
   try {
+    beginOp();
     await api('addMember', { name, color });
     memberForm.reset();
     closeMemberModal();
@@ -483,6 +490,8 @@ async function handleAddMember(e) {
     selectedMembers = new Set(members.map(m => m.name));
     render();
     alert('인원 추가에 실패했습니다.');
+  } finally {
+    endOp();
   }
 }
 
@@ -501,6 +510,7 @@ async function handleDeleteMembers(e) {
   render();
 
   try {
+    beginOp();
     await api('deleteMember', { names });
     closeMemberDeleteModal();
     await refreshData();
@@ -511,6 +521,8 @@ async function handleDeleteMembers(e) {
     selectedMembers = new Set(members.map(m => m.name));
     render();
     alert('인원 삭제에 실패했습니다.');
+  } finally {
+    endOp();
   }
 }
 
@@ -524,6 +536,7 @@ async function handleDeleteEvents(e) {
   render();
 
   try {
+    beginOp();
     await api('deleteEvent', { ids });
     closeEventDeleteModal();
     await refreshData();
@@ -532,6 +545,8 @@ async function handleDeleteEvents(e) {
     events = prevEvents;
     render();
     alert('일정 삭제에 실패했습니다.');
+  } finally {
+    endOp();
   }
 }
 
@@ -676,5 +691,20 @@ function saveCache() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ members, events, ts: Date.now() }));
   } catch {}
+}
+
+function showLoading(on) {
+  if (!loadingEl) return;
+  loadingEl.classList.toggle('hidden', !on);
+}
+
+function beginOp() {
+  pendingOps += 1;
+  showLoading(true);
+}
+
+function endOp() {
+  pendingOps = Math.max(0, pendingOps - 1);
+  if (pendingOps === 0) showLoading(false);
 }
 

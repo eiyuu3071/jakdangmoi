@@ -154,6 +154,13 @@ function renderMemberFilters() {
 function renderMemberDeleteOptions() {
   memberDeleteList.innerHTML = '';
   memberDeleteList.dataset.selectedNames = '';
+  if (members.length === 0) {
+    if (!memberDeleteModalEl.classList.contains('hidden')) {
+      closeMemberDeleteModal();
+    }
+    return;
+  }
+
   members.forEach(m => {
     const item = document.createElement('div');
     item.className = 'select-item';
@@ -199,6 +206,13 @@ function renderEventDeleteOptions() {
   const sorted = events
     .slice()
     .sort((a, b) => parseDate(a.start) - parseDate(b.start));
+
+  if (sorted.length === 0) {
+    if (!eventDeleteModalEl.classList.contains('hidden')) {
+      closeEventDeleteModal();
+    }
+    return;
+  }
 
   sorted.forEach(ev => {
     const item = document.createElement('div');

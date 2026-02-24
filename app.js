@@ -1,4 +1,17 @@
-﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzu8Ozqi7RPJ9l51Gv-XG6C9HVK8UiWZalZjC-6-kgUr51On7ToJNRkrC9tUTYlspneUA/exec';\nconst API_TOKEN = 'jakdangmoi-2026';\n\nwindow.APP_READY = true;\n\nconst holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzu8Ozqi7RPJ9l51Gv-XG6C9HVK8UiWZalZjC-6-kgUr51On7ToJNRkrC9tUTYlspneUA/exec';
+const API_TOKEN = 'jakdangmoi-2026';
+
+window.APP_READY = true;
+
+window.onerror = function (msg, src, line, col) {
+  alert(`JS 오류: ${msg} (${line}:${col})`);
+};
+
+window.onunhandledrejection = function (e) {
+  alert(`Promise 오류: ${e.reason}`);
+};
+
+const holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
 const CACHE_KEY = 'jakdangmoi-cache-v1';
 
 let members = [];
@@ -44,7 +57,8 @@ const eventDeleteModalEl = document.getElementById('eventDeleteModal');
 const eventDeleteCloseBtn = document.getElementById('eventDeleteClose');
 const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
-const eventDeleteList = document.getElementById('eventDeleteList');\nconst prevBtn = document.getElementById('prevBtn');
+const eventDeleteList = document.getElementById('eventDeleteList');
+const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const todayBtn = document.getElementById('todayBtn');
 
@@ -695,15 +709,21 @@ memberDeleteForm.addEventListener('submit', handleDeleteMembers);
 eventDeleteForm.addEventListener('submit', handleDeleteEvents);
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const cached = loadCache();
-  if (cached) {
-    members = cached.members;
-    events = cached.events;
-    selectedMembers = new Set(members.map(m => m.name));
+  try {
+    const cached = loadCache();
+    if (cached) {
+      members = cached.members;
+      events = cached.events;
+      selectedMembers = new Set(members.map(m => m.name));
+      render();
+    }
+    await refreshData();
+  } catch (e) {
+    console.error(e);
+    alert(`초기화 오류: ${e.message || e}`);
+  } finally {
     render();
   }
-  await refreshData();
-  render();
 });
 
 function loadCache() {
@@ -724,6 +744,10 @@ function saveCache() {
   } catch {}
 }
 
-function beginOp() {}\n\nfunction endOp() {}\n
+function beginOp() {}
+
+function endOp() {}
+
+
 
 

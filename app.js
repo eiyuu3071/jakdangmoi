@@ -82,7 +82,6 @@ async function api(action, payload = {}) {
   }
   const res = await fetch(API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token: API_TOKEN, action, payload }),
   });
   const data = await res.json();

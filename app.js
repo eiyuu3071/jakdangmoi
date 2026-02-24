@@ -2,6 +2,7 @@
 const API_TOKEN = 'jakdangmoi-2026';
 
 const holidayMap = new Map((window.HOLIDAYS_KO || []).map(h => [h.date, h.name]));
+const CACHE_KEY = 'jakdangmoi-cache-v1';
 
 let members = [];
 let events = [];
@@ -89,6 +90,7 @@ async function refreshData() {
     members = data.members || [];
     events = data.events || [];
     selectedMembers = new Set(members.map(m => m.name));
+    saveCache();
   } catch (err) {
     console.error(err);
     alert('데이터를 불러오지 못했습니다. API 설정을 확인해주세요.');
@@ -103,9 +105,25 @@ function render() {
 
   renderLegend();
   renderMemberFilters();
-  renderMemberDeleteOptions();
-  renderEventDeleteOptions();
   renderMonths();
+}
+
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.members) || !Array.isArray(parsed.events)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ members, events, ts: Date.now() }));
+  } catch {}
 }
 
 function renderLegend() {
@@ -597,6 +615,13 @@ memberDeleteForm.addEventListener('submit', handleDeleteMembers);
 eventDeleteForm.addEventListener('submit', handleDeleteEvents);
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const cached = loadCache();
+  if (cached) {
+    members = cached.members;
+    events = cached.events;
+    selectedMembers = new Set(members.map(m => m.name));
+    render();
+  }
   await refreshData();
   render();
 });

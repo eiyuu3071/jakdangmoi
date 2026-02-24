@@ -332,23 +332,30 @@ function eventsForDay(day) {
 }
 
 function normalizeDateStr(input) {
-  if (!input) return '';
-  let s = String(input);
+  if (input === null || input === undefined) return '';
+  let s = String(input).trim();
   if (s.includes('T')) s = s.split('T')[0];
-  if (s.includes(' ')) s = s.split(' ')[0];
   return s;
 }
 
-function parseDate(str) {
-  const s = normalizeDateStr(str);
+function parseDate(input) {
+  if (input instanceof Date) return input;
+  if (typeof input === 'number') return new Date(input);
+  const s = normalizeDateStr(input);
   if (!s) return new Date(NaN);
-  const parts = s.includes('-') ? s.split('-') : s.split('.');
-  const [y, m, d] = parts.map(Number);
-  return new Date(y, (m || 1) - 1, d || 1);
+
+  const m = s.match(/(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
+  if (m) {
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+
+  const d = new Date(input);
+  return isNaN(d.getTime()) ? new Date(NaN) : d;
 }
 
 function formatDate(str) {
   const d = parseDate(str);
+  if (isNaN(d.getTime())) return String(str);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

@@ -331,9 +331,20 @@ function eventsForDay(day) {
   return events.filter(ev => selectedMembers.has(ev.member) && inRange(day, ev.start, ev.end));
 }
 
+function normalizeDateStr(input) {
+  if (!input) return '';
+  let s = String(input);
+  if (s.includes('T')) s = s.split('T')[0];
+  if (s.includes(' ')) s = s.split(' ')[0];
+  return s;
+}
+
 function parseDate(str) {
-  const [y, m, d] = str.split('-').map(Number);
-  return new Date(y, m - 1, d);
+  const s = normalizeDateStr(str);
+  if (!s) return new Date(NaN);
+  const parts = s.includes('-') ? s.split('-') : s.split('.');
+  const [y, m, d] = parts.map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
 }
 
 function formatDate(str) {

@@ -47,11 +47,7 @@ const eventDeleteModalEl = document.getElementById('eventDeleteModal');
 const eventDeleteCloseBtn = document.getElementById('eventDeleteClose');
 const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
-const eventDeleteList = document.getElementById('eventDeleteList');
-let loadingEl = document.getElementById('loadingOverlay');
-
-let pendingOps = 0;
-
+const eventDeleteList = document.getElementById('eventDeleteList');\n
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const todayBtn = document.getElementById('todayBtn');
@@ -710,25 +706,5 @@ function saveCache() {
   } catch {}
 }
 
-function showLoading(on) {
-  if (!loadingEl) {
-    const el = document.createElement('div');
-    el.id = 'loadingOverlay';
-    el.className = 'loading hidden';
-    el.innerHTML = '<div class="loading-card"><div class="spinner"></div><div>동기화 중…</div></div>';
-    document.body.appendChild(el);
-    loadingEl = el;
-  }
-  loadingEl.classList.toggle('hidden', !on);
-}
-
-function beginOp() {
-  pendingOps += 1;
-  showLoading(true);
-}
-
-function endOp() {
-  pendingOps = Math.max(0, pendingOps - 1);
-  if (pendingOps === 0) showLoading(false);
-}
+function beginOp() {}\n\nfunction endOp() {}\n
 

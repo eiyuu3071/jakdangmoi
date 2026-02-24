@@ -47,8 +47,7 @@ const eventDeleteModalEl = document.getElementById('eventDeleteModal');
 const eventDeleteCloseBtn = document.getElementById('eventDeleteClose');
 const eventDeleteBackdrop = document.getElementById('eventDeleteBackdrop');
 const eventDeleteForm = document.getElementById('eventDeleteForm');
-const eventDeleteList = document.getElementById('eventDeleteList');\n
-const prevBtn = document.getElementById('prevBtn');
+const eventDeleteList = document.getElementById('eventDeleteList');\nconst prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 const todayBtn = document.getElementById('todayBtn');
 

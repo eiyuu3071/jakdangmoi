@@ -1,0 +1,159 @@
+﻿<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>작당모의</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div>
+        <h1>작당모의</h1>
+        <p>1개월 단위로 일정을 한눈에 공유합니다.</p>
+      </div>
+      <div class="actions">
+        <button id="prevBtn" class="ghost">이전 달</button>
+        <button id="todayBtn" class="solid">이번 달</button>
+        <button id="nextBtn" class="ghost">다음 달</button>
+      </div>
+    </header>
+
+    <section class="meta">
+      <div class="legend" id="legend"></div>
+      <div class="tip">
+        인원 선택, 일정 추가/삭제는 페이지에서 바로 가능합니다.
+      </div>
+    </section>
+
+    <main id="calendar" class="calendar"></main>
+
+    <aside class="sidebar">
+      <div class="panel">
+        <h2>인원 선택</h2>
+        <div id="memberFilters" class="filters"></div>
+      </div>
+
+      <div class="panel">
+        <h2>인원 관리</h2>
+        <div class="panel-actions">
+          <button id="openMemberModal" class="solid" type="button">인원 추가</button>
+          <button id="openMemberDeleteModal" class="ghost" type="button">인원 삭제</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>일정 등록</h2>
+        <div class="panel-actions">
+          <button id="openEventModal" class="solid" type="button">일정 추가</button>
+          <button id="openEventDeleteModal" class="ghost" type="button">일정 삭제</button>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">일정 상세</h3>
+        <button id="modalClose" class="ghost">닫기</button>
+      </div>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="memberModal" class="modal hidden">
+    <div class="modal-backdrop" id="memberModalBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>인원 추가</h3>
+        <button id="memberModalClose" class="ghost">닫기</button>
+      </div>
+      <form id="memberForm" class="form">
+        <label class="field">
+          <span>이름</span>
+          <input id="memberNameInput" type="text" placeholder="예: 지훈" required />
+        </label>
+        <button class="solid" type="submit">추가</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="memberDeleteModal" class="modal hidden">
+    <div class="modal-backdrop" id="memberDeleteBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>인원 삭제</h3>
+        <button id="memberDeleteClose" class="ghost">닫기</button>
+      </div>
+      <form id="memberDeleteForm" class="form">
+        <div class="field">
+          <span>삭제할 인원</span>
+          <div id="memberDeleteList" class="select-list"></div>
+        </div>
+        <button class="delete-btn" type="submit">삭제</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="eventModal" class="modal hidden">
+    <div class="modal-backdrop" id="eventModalBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>일정 추가</h3>
+        <button id="eventModalClose" class="ghost">닫기</button>
+      </div>
+      <form id="eventForm" class="form">
+        <label class="field">
+          <span>대상 인원(복수 선택)</span>
+          <div id="memberSelect" class="filters"></div>
+        </label>
+        <label class="field">
+          <span>구분</span>
+          <select id="typeInput">
+            <option value="휴가">휴가</option>
+            <option value="출장">출장</option>
+            <option value="약속">약속</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>시작일</span>
+          <input id="startInput" type="date" required />
+        </label>
+        <label class="field">
+          <span>종료일</span>
+          <input id="endInput" type="date" required />
+        </label>
+        <label class="field">
+          <span>메모(선택)</span>
+          <input id="noteInput" type="text" placeholder="예: 해외 파트너 미팅" />
+        </label>
+        <button class="solid" type="submit">추가</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="eventDeleteModal" class="modal hidden">
+    <div class="modal-backdrop" id="eventDeleteBackdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>일정 삭제</h3>
+        <button id="eventDeleteClose" class="ghost">닫기</button>
+      </div>
+      <form id="eventDeleteForm" class="form">
+        <div class="field">
+          <span>삭제할 일정</span>
+          <div id="eventDeleteList" class="select-list"></div>
+        </div>
+        <button class="delete-btn" type="submit">삭제</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="holidays-ko.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

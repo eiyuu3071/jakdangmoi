@@ -20,7 +20,7 @@ let selectedMembers = new Set();
 let baseDate = startOfMonth(new Date());
 
 const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-const weekdayNames = ['월','화','수','목','금','토','일'];
+const weekdayNames = ['일','월','화','수','목','금','토'];
 
 const calendarEl = document.getElementById('calendar');
 const legendEl = document.getElementById('legend');
@@ -438,7 +438,7 @@ function isSameDay(a, b) {
 function startOfCalendar(monthDate) {
   const first = startOfMonth(monthDate);
   const day = first.getDay();
-  const offset = (day + 6) % 7;
+  const offset = day;
   return addDays(first, -offset);
 }
 

@@ -452,3 +452,25 @@ details.panel[open] > summary::after {
 @media (max-width: 980px) {
   .calendar { grid-template-columns: 1fr; }
 }
+
+
+.calendar-nav {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.calendar-nav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 980px) {
+  .calendar-nav {
+    justify-content: center;
+  }
+
+  .calendar-nav-actions {
+    justify-content: center;
+  }
+}

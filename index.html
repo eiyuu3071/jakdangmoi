@@ -75,7 +75,7 @@
       <div id="reviewStatus" class="review-status" aria-live="polite"></div>
 
       <form id="reviewForm" class="review-form">
-        <div class="review-form-grid">
+        <div class="review-form-grid review-form-grid-three">
           <label class="field">
             <span>닉네임</span>
             <input id="reviewNicknameInput" type="text" maxlength="20" placeholder="예: 점심요정" required />
@@ -91,6 +91,10 @@
             </div>
             <input id="reviewRatingInput" type="hidden" value="5" />
           </div>
+          <label class="field">
+            <span>삭제 비밀번호</span>
+            <input id="reviewPasswordInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="숫자 4자리" required />
+          </label>
         </div>
 
         <label class="field">

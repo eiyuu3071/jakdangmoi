@@ -8,6 +8,7 @@ const reviewEmptyState = document.getElementById('reviewEmptyState');
 const reviewStatus = document.getElementById('reviewStatus');
 const reviewForm = document.getElementById('reviewForm');
 const reviewNicknameInput = document.getElementById('reviewNicknameInput');
+const reviewPasswordInput = document.getElementById('reviewPasswordInput');
 const reviewContentInput = document.getElementById('reviewContentInput');
 const reviewRatingInput = document.getElementById('reviewRatingInput');
 const reviewSubmitBtn = document.getElementById('reviewSubmitBtn');
@@ -105,10 +106,22 @@ function renderReviewList(reviews) {
     body.className = 'review-body';
     body.textContent = review.content || '';
 
+    const actions = document.createElement('div');
+    actions.className = 'review-card-actions';
+    if (review.id) {
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'review-delete-btn';
+      deleteButton.textContent = '삭제';
+      deleteButton.addEventListener('click', () => handleDeleteReview(review.id));
+      actions.appendChild(deleteButton);
+    }
+
     head.appendChild(authorWrap);
     head.appendChild(rating);
     item.appendChild(head);
     item.appendChild(body);
+    item.appendChild(actions);
     reviewList.appendChild(item);
   });
 }
@@ -153,12 +166,19 @@ async function handleReviewSubmit(event) {
   if (reviewBusy) return;
 
   const nickname = reviewNicknameInput.value.trim();
+  const password = reviewPasswordInput.value.trim();
   const content = reviewContentInput.value.trim();
   const rating = Number(reviewRatingInput.value || 0);
 
   if (!nickname) {
     alert('닉네임을 입력해주세요.');
     reviewNicknameInput.focus();
+    return;
+  }
+
+  if (!/^\d{4}$/.test(password)) {
+    alert('삭제 비밀번호는 숫자 4자리여야 합니다.');
+    reviewPasswordInput.focus();
     return;
   }
 
@@ -180,10 +200,12 @@ async function handleReviewSubmit(event) {
         date: currentReviewDate,
         nickname,
         rating,
-        content
+        content,
+        password
       }
     });
     reviewContentInput.value = '';
+    reviewPasswordInput.value = '';
     applySelectedRating(5);
     renderReviewSummary(data);
     renderReviewList(Array.isArray(data.reviews) ? data.reviews : []);
@@ -192,6 +214,35 @@ async function handleReviewSubmit(event) {
     console.error(error);
     alert('리뷰 등록 실패: ' + (error.message || error));
     setReviewStatus('리뷰 등록에 실패했습니다.', true);
+  } finally {
+    setReviewBusy(false, reviewStatus?.textContent || '');
+  }
+}
+
+async function handleDeleteReview(reviewId) {
+  if (reviewBusy) return;
+
+  const password = window.prompt('이 리뷰를 삭제하려면 등록할 때 입력한 4자리 비밀번호를 입력해주세요.');
+  if (password === null) return;
+  if (!/^\d{4}$/.test(password.trim())) {
+    alert('삭제 비밀번호는 숫자 4자리여야 합니다.');
+    return;
+  }
+
+  try {
+    setReviewBusy(true, '리뷰를 삭제하는 중입니다...');
+    const data = await api('deleteReview', {
+      id: reviewId,
+      password: password.trim(),
+      date: currentReviewDate
+    });
+    renderReviewSummary(data);
+    renderReviewList(Array.isArray(data.reviews) ? data.reviews : []);
+    setReviewStatus('리뷰가 삭제되었습니다.', false);
+  } catch (error) {
+    console.error(error);
+    alert('리뷰 삭제 실패: ' + (error.message || error));
+    setReviewStatus('리뷰 삭제에 실패했습니다.', true);
   } finally {
     setReviewBusy(false, reviewStatus?.textContent || '');
   }
@@ -210,4 +261,3 @@ reviewForm?.addEventListener('submit', handleReviewSubmit);
 
 applySelectedRating(Number(reviewRatingInput?.value || 5));
 refreshReviews(currentReviewDate);
-

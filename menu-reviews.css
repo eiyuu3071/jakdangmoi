@@ -84,7 +84,7 @@
 
 .review-card {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -121,6 +121,21 @@
   white-space: pre-wrap;
 }
 
+.review-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.review-delete-btn {
+  border: 1px solid #fee2e2;
+  background: #fff1f2;
+  color: #b91c1c;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .review-empty-state {
   padding: 18px;
   border-radius: 16px;
@@ -153,6 +168,10 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
+}
+
+.review-form-grid-three {
+  grid-template-columns: minmax(0, 1fr) auto minmax(180px, 220px);
 }
 
 .review-star-picker {
@@ -207,7 +226,8 @@
     grid-template-columns: 1fr;
   }
 
-  .review-form-grid {
+  .review-form-grid,
+  .review-form-grid-three {
     grid-template-columns: 1fr;
   }
 

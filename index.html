@@ -25,7 +25,7 @@
       <div class="menu-board-header">
         <div>
           <h2>구내식당 메뉴표</h2>
-          <p>이미지를 선택하면 이 영역에 크게 표시됩니다.</p>
+          <p>이미지를 선택하면 사이트를 보는 모든 사람에게 같은 메뉴표가 표시됩니다.</p>
         </div>
         <div class="menu-board-actions">
           <label for="menuImageInput" class="button-like solid">이미지 선택</label>
@@ -38,9 +38,10 @@
       <div id="menuImagePreview" class="menu-image-preview is-empty">
         <img id="menuImage" alt="선택한 구내식당 메뉴표" hidden />
         <div id="menuImagePlaceholder" class="menu-image-placeholder">
-          아직 선택된 이미지가 없습니다.
+          아직 등록된 메뉴 이미지가 없습니다.
         </div>
       </div>
+      <div id="menuImageStatus" class="menu-image-status" aria-live="polite"></div>
     </section>
 
     <section class="meta">
@@ -188,4 +189,3 @@
   </script>
 </body>
 </html>
-

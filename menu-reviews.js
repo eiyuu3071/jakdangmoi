@@ -175,7 +175,7 @@ async function handleReviewSubmit(event) {
 
   try {
     setReviewBusy(true, '리뷰를 등록하는 중입니다...');
-    await api('addReview', {
+    const data = await api('addReview', {
       review: {
         date: currentReviewDate,
         nickname,
@@ -185,7 +185,8 @@ async function handleReviewSubmit(event) {
     });
     reviewContentInput.value = '';
     applySelectedRating(5);
-    await refreshReviews(currentReviewDate);
+    renderReviewSummary(data);
+    renderReviewList(Array.isArray(data.reviews) ? data.reviews : []);
     setReviewStatus('리뷰가 등록되었습니다.', false);
   } catch (error) {
     console.error(error);
@@ -209,3 +210,4 @@ reviewForm?.addEventListener('submit', handleReviewSubmit);
 
 applySelectedRating(Number(reviewRatingInput?.value || 5));
 refreshReviews(currentReviewDate);
+

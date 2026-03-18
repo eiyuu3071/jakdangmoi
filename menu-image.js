@@ -7,11 +7,16 @@ const menuImageStatus = document.getElementById('menuImageStatus');
 const menuImagePickLabel = document.querySelector('label[for="menuImageInput"]');
 
 let menuImageBusy = false;
+let menuImageCandidates = [];
+let menuImageCandidateIndex = 0;
 
 function setMenuImage(src) {
   if (!menuImageEl || !menuImagePreview || !menuImagePlaceholder) return;
 
-  if (!src) {
+  const nextSrc = src || '';
+  if (!nextSrc) {
+    menuImageCandidates = [];
+    menuImageCandidateIndex = 0;
     menuImageEl.hidden = true;
     menuImageEl.removeAttribute('src');
     menuImagePlaceholder.hidden = false;
@@ -19,10 +24,64 @@ function setMenuImage(src) {
     return;
   }
 
-  menuImageEl.src = src;
-  menuImageEl.hidden = false;
+  menuImageCandidates = buildImageCandidates(nextSrc);
+  menuImageCandidateIndex = 0;
   menuImagePlaceholder.hidden = true;
+  menuImageEl.hidden = false;
   menuImagePreview.classList.remove('is-empty');
+  loadCurrentMenuImageCandidate();
+}
+
+function buildImageCandidates(src) {
+  const candidates = [src];
+  const fileId = extractDriveFileId(src);
+  if (fileId) {
+    candidates.push(`https://drive.google.com/uc?export=view&id=${fileId}`);
+    candidates.push(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`);
+    candidates.push(`https://lh3.googleusercontent.com/d/${fileId}=w1600`);
+  }
+  return [...new Set(candidates.filter(Boolean))];
+}
+
+function extractDriveFileId(src) {
+  const value = String(src || '');
+  const queryMatch = value.match(/[?&]id=([^&]+)/);
+  if (queryMatch) return queryMatch[1];
+
+  const pathMatch = value.match(/\/d\/([^/]+)/);
+  if (pathMatch) return pathMatch[1];
+
+  return '';
+}
+
+function loadCurrentMenuImageCandidate() {
+  if (!menuImageEl || menuImageCandidateIndex >= menuImageCandidates.length) {
+    handleMenuImageLoadFailure();
+    return;
+  }
+  menuImageEl.src = menuImageCandidates[menuImageCandidateIndex];
+}
+
+function handleMenuImageLoadSuccess() {
+  setStatus('공용 메뉴 이미지가 표시되고 있습니다.');
+}
+
+function handleMenuImageLoadError() {
+  menuImageCandidateIndex += 1;
+  if (menuImageCandidateIndex < menuImageCandidates.length) {
+    loadCurrentMenuImageCandidate();
+    return;
+  }
+  handleMenuImageLoadFailure();
+}
+
+function handleMenuImageLoadFailure() {
+  if (!menuImageEl || !menuImagePreview || !menuImagePlaceholder) return;
+  menuImageEl.hidden = true;
+  menuImageEl.removeAttribute('src');
+  menuImagePlaceholder.hidden = false;
+  menuImagePreview.classList.add('is-empty');
+  setStatus('메뉴 이미지는 저장됐지만 화면에 표시할 수 없습니다. Drive 공개 링크 형식을 다시 확인해주세요.', true);
 }
 
 function setStatus(message, isError = false) {
@@ -49,8 +108,11 @@ async function fetchSharedMenuImage() {
   try {
     setBusy(true, '메뉴 이미지를 불러오는 중입니다...');
     const data = await api('getMenuImage');
-    setMenuImage(data.imageUrl || data.imageDataUrl || '');
-    setStatus(data.imageUrl || data.imageDataUrl ? '공용 메뉴 이미지가 표시되고 있습니다.' : '아직 등록된 메뉴 이미지가 없습니다.');
+    const src = data.imageUrl || data.imageDataUrl || data.menuImage || '';
+    setMenuImage(src);
+    if (!src) {
+      setStatus('아직 등록된 메뉴 이미지가 없습니다.');
+    }
   } catch (error) {
     console.error(error);
     setStatus('메뉴 이미지를 불러오지 못했습니다.', true);
@@ -139,8 +201,8 @@ async function clearMenuImage() {
   }
 }
 
+menuImageEl?.addEventListener('load', handleMenuImageLoadSuccess);
+menuImageEl?.addEventListener('error', handleMenuImageLoadError);
 menuImageInput?.addEventListener('change', handleMenuImageChange);
 clearMenuImageBtn?.addEventListener('click', clearMenuImage);
 fetchSharedMenuImage();
-
-

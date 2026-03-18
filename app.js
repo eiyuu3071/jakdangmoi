@@ -1,4 +1,4 @@
-﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzu8Ozqi7RPJ9l51Gv-XG6C9HVK8UiWZalZjC-6-kgUr51On7ToJNRkrC9tUTYlspneUA/exec';
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbwQQK9wOufSm0kNIp-YF9_H0X7XCx5hkFAY32IUs8EDlV-3kmMsAaa5DT3CkZFWHoLPtw/exec';
 const API_TOKEN = 'jakdangmoi-2026';
 
 window.APP_READY = true;

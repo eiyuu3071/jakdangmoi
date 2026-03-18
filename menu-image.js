@@ -113,7 +113,7 @@ async function handleMenuImageChange(event) {
     setStatus('공용 메뉴 이미지가 업데이트되었습니다.');
   } catch (error) {
     console.error(error);
-    alert(메뉴 이미지 업로드 실패: );
+    alert('메뉴 이미지 업로드 실패: ' + (error.message || error));
     setStatus('메뉴 이미지 업로드에 실패했습니다.', true);
   } finally {
     menuImageInput.value = '';
@@ -132,7 +132,7 @@ async function clearMenuImage() {
     setStatus('공용 메뉴 이미지가 삭제되었습니다.');
   } catch (error) {
     console.error(error);
-    alert(메뉴 이미지 삭제 실패: );
+    alert('메뉴 이미지 삭제 실패: ' + (error.message || error));
     setStatus('메뉴 이미지 삭제에 실패했습니다.', true);
   } finally {
     setBusy(false, menuImageStatus?.textContent || '');
@@ -142,4 +142,5 @@ async function clearMenuImage() {
 menuImageInput?.addEventListener('change', handleMenuImageChange);
 clearMenuImageBtn?.addEventListener('click', clearMenuImage);
 fetchSharedMenuImage();
+
 
